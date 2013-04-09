@@ -1,0 +1,35 @@
+{
+  "name": "node-powermate-launcher",
+  "description": "An application laucher by Griffin PowerMate",
+  "version": "0.0.1",
+  "homepage": "https://github.com/fcsonline/node-powermate-launcher",
+  "author": {
+    "name": "Ferran Basora",
+    "email": "fcsonline@gmail.com",
+    "url": "https://github.com/fcsonline"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:fcsonline/node-powermate-launcher.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fcsonline/node-powermate-launcher/issues"
+  },
+  "keywords": [
+     "griffin powermate",
+     "griffin",
+     "powermate",
+     "launcher"
+  ],
+  "dependencies": {
+      "commander": ">= 1.1.1"
+    , "node-powermate": ">= 0.0.1"
+    , "growl": ">= 1.7.0"
+  },
+  "preferGlobal": "true",
+  "main": "index",
+  "bin": { "npl": "./bin/npl" },
+  "engines": {
+    "node": "*"
+  }
+}

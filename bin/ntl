@@ -71,16 +71,19 @@ powermate.on('buttonUp', function () {
     return;
   }
 
-  var child;
+  if (program.debug) {
+    sys.print('Executing: "' + config[cursor_group].commands[cursor].exec + '"\n\n');
+  }
 
-  // executes `pwd`
-  child = exec(config[cursor_group].commands[cursor].exec, function (error, stdout, stderr) {
-    sys.print('stdout: ' + stdout);
-    sys.print('stderr: ' + stderr);
-    if (error !== null) {
-      console.log('exec error: ' + error);
+  var child = exec(config[cursor_group].commands[cursor].exec, function (error, stdout, stderr) {
+    if (program.debug) {
+      sys.print('stdout: ' + stdout);
+      sys.print('stderr: ' + stderr);
+      if (error !== null) {
+        console.log('exec error: ' + error);
+      }
+      sys.print('\n');
     }
-    sys.print('\n');
     clearTimeout(timeout_running);
     running = false;
   });

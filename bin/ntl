@@ -50,7 +50,7 @@ function showCurrentCommand() {
 
   var image = config[cursor_group].commands[cursor].icon ||
               config[cursor_group].icon ||
-              './powermate.png';
+              __dirname + '/../powermate.png';
 
   growl(config[cursor_group].commands[cursor].name, {
     title: config[cursor_group].label

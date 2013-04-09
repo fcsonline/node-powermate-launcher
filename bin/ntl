@@ -1,0 +1,181 @@
+#!/usr/bin/env node
+
+var exec = require('child_process').exec;
+var program = require('commander');
+var path = require('path');
+var fs = require('fs');
+var sys = require('sys');
+var exec = require('child_process').exec;
+var PowerMate = require('node-powermate');
+var growl = require('growl');
+
+var powermate = new PowerMate();
+var level = 0;
+var speed = 10;
+var direction = false;
+var momentum = 0;
+var momentum_group = 0;
+var cursor = 0;
+var cursor_group = 0;
+var timeout = 0;
+var timeout_running = 0;
+var running = false;
+var execute = false;
+var pressed = false;
+var config;
+
+program
+.version('0.0.1')
+.option('-d, --debug', 'enables the debug mode', Boolean, false)
+.option('-c, --config <path>', 'configuration file path to setup the launcher configuration', String, '')
+.parse(process.argv);
+
+if (program.config) {
+
+  var configpath = path.resolve(program.config);
+
+  if (fs.existsSync(configpath)) {
+    config = JSON.parse(fs.readFileSync(configpath));
+
+  } else {
+    throw new Error('Configuration file not found');
+  }
+
+} else {
+  throw new Error('A configuration file is required');
+}
+
+
+function showCurrentCommand() {
+
+  var image = config[cursor_group].commands[cursor].icon ||
+              config[cursor_group].icon ||
+              './powermate.png';
+
+  growl(config[cursor_group].commands[cursor].name, {
+    title: config[cursor_group].label
+  , image: path.resolve(image)
+  });
+}
+
+powermate.on('buttonDown', function () {
+  execute = true;
+  pressed = true;
+});
+
+powermate.on('buttonUp', function () {
+
+  pressed = false;
+
+  if (!execute) {
+    return;
+  }
+
+  var child;
+
+  // executes `pwd`
+  child = exec(config[cursor_group].commands[cursor].exec, function (error, stdout, stderr) {
+    sys.print('stdout: ' + stdout);
+    sys.print('stderr: ' + stderr);
+    if (error !== null) {
+      console.log('exec error: ' + error);
+    }
+    sys.print('\n');
+    clearTimeout(timeout_running);
+    running = false;
+  });
+
+  if (!running) {
+    running = true;
+    timeout_running = setInterval(function () {
+
+      if (direction) {
+        level = Math.max(level - speed, 0);
+      } else {
+        level = Math.min(level + speed, 255);
+      }
+
+      if (level === 0) {
+        direction = false;
+      } else if (level === 255) {
+        direction = true;
+      }
+
+      // Sometimes it fails to write to the device
+      try {
+        powermate.setBrightness(level);
+      } catch (err) {
+
+      }
+
+    }, 100);
+  }
+
+});
+
+powermate.on('wheelTurn', function (delta) {
+  var new_cursor = 0;
+
+  // It's a change group event, so don't execute a command
+  execute = false;
+
+  // Invalidate previous timer
+  clearTimeout(timeout);
+
+  // Timer to clean slow motions
+  timeout = setTimeout(function () {
+    momentum = 0;
+    momentum_group = 0;
+  }, 1000);
+
+  // Check to determine is is a group or command change
+  if (pressed) {
+    // Group change
+    momentum_group += delta;
+    momentum = 0;
+
+    // Momentum threshold achieved. Change group!
+    if (Math.abs(momentum_group) > 10) {
+
+      if (momentum_group > 0) {
+        new_cursor = Math.min(cursor_group + 1, config.length - 1);
+      } else {
+        new_cursor = Math.max(cursor_group - 1, 0);
+      }
+
+      momentum_group = 0;
+
+      if (new_cursor !== cursor_group) {
+        cursor_group = new_cursor;
+        cursor = 0;
+
+        showCurrentCommand();
+      }
+    }
+  } else {
+    // Command change
+    momentum += delta;
+    momentum_group = 0;
+
+    // Momentum threshold achieved. Change command!
+    if (Math.abs(momentum) > 15) {
+
+      if (momentum > 0) {
+        new_cursor = Math.min(cursor + 1, config[cursor_group].commands.length - 1);
+      } else {
+        new_cursor = Math.max(cursor - 1, 0);
+      }
+
+      momentum = 0;
+
+      if (new_cursor !== cursor) {
+        cursor = new_cursor;
+
+        showCurrentCommand();
+      }
+    }
+  }
+
+});
+
+showCurrentCommand();

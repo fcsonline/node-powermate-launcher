@@ -44,17 +44,17 @@ An example of config file:
   , "commands": [
       {
         "name": "Rimshot"
-      , "exec": "cvlc --novideo ./rimshot.mp3'"
+      , "exec": "cvlc --novideo ./rimshot.mp3"
       }
     , {
         "name": "Money"
       , "icon": "./money_icon.png"
-      , "exec": "cvlc --novideo ./cash-register-05.wav'"
+      , "exec": "cvlc --novideo ./cash-register-05.wav"
       }
     , {
         "name": "Money"
       , "icon": "./mario-coin.png"
-      , "exec": "cvlc --novideo ./mario-coin.mp3'"
+      , "exec": "cvlc --novideo ./mario-coin.mp3"
       }
     ]
   }
